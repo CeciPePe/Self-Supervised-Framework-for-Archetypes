@@ -114,7 +114,6 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         return len(self.all_data_dirs)
     
     def __getimg__(self, index):
-        # image loading
         if self.preprocess:
             img_tensor = torch.load(self.all_data_dirs[index])
         else:
