@@ -32,7 +32,8 @@ noise=False
 noise_weight=0.05
 img_channel=3 if USE_MULTISCALE else 1
 
-
+# Set the device to CPU if CUDA is not available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def train_marl(train_loader=None, validation_loader=None, 
                data_variance=None, val_len=None, year_label_num=None, category_num=None,
                get_pretrain=True, use_multi_task=USE_MULTITASK):
@@ -41,7 +42,7 @@ def train_marl(train_loader=None, validation_loader=None,
                 n_embeddings, embedding_dim, 
                 beta, img_channel).to(device)
     if get_pretrain:
-        vqae.load_state_dict(torch.load("./best_checkpoint/final/55-vqae-0.04753296934928414.pt"))
+        vqae.load_state_dict(torch.load("./best_checkpoint/55-vqae-0.04753296934928414.pt", map_location=device))
 
     marl = MARL(vqae, USE_MULTITASK, year_label_num, category_num)
     optimizer = torch.optim.Adam(marl.parameters(), lr=lr, amsgrad=False)
@@ -56,19 +57,25 @@ def train_marl(train_loader=None, validation_loader=None,
 
 
     best_loss = 1e10
+    
     for epoch in range(0, epochs):
         with tqdm(train_loader, unit="batch") as tepoch:
             marl.train()
+            for data_dict in train_loader:
+                data = data_dict['image_tensor']
+                print(f"Input tensor shape before passing to MARL: {data.shape}") 
+                break
             for data_dict in tepoch:
                 data = data_dict['image_tensor']
+                print(f"Input tensor shape: {data.shape}")
                 bs = data.shape[0]
                 data_no_noise = data.to(device)
                 optimizer.zero_grad()
-
                 if noise:
                     data = add_noise(data_no_noise, noise_weight=noise_weight)
                 else:
                     data = data_no_noise
+
                 pred = marl(data)
 
                 # recon loss
@@ -171,12 +178,16 @@ def train_marl(train_loader=None, validation_loader=None,
 if __name__ == "__main__":
     #Load Dataset
     floor = FloorPlanDataset(multi_scale=True, root='./data/data_root/data00/', data_config='./data/data_config/', preprocess=True)
+    
     data_variance = floor.var
     val_len = int(len(floor)/10)
     train_set, val_set = torch.utils.data.random_split(floor, [len(floor)-val_len, val_len])
+    if len(train_set) == 0:
+        raise ValueError("Error: The dataset is empty. Check your data loading process.")
 
-    print(f"data shape: {floor[0]['image_tensor'].shape}, dataset size: {len(floor)}, data variance: {data_variance}")
+    #print(f"data shape: {floor[0]['image_tensor'].shape}, dataset size: {len(floor)}, data variance: {data_variance}")
     train_loader = torch.utils.data.DataLoader(train_set, batch_size = batch_size, shuffle = True)
+
     validation_loader = torch.utils.data.DataLoader(val_set, batch_size = batch_size, shuffle = False)
 
     train_marl(train_loader, validation_loader, \

@@ -149,3 +149,6 @@ results/test*
 notebooks/test*
 notebooks/outputs/vae_latent.pt
 notebooks/outputs/marl_latent.pt
+
+data/data_root_1/*
+!data/data_root_1/.gitkeep

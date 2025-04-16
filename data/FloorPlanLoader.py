@@ -114,6 +114,7 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         return len(self.all_data_dirs)
     
     def __getimg__(self, index):
+        # image loading
         if self.preprocess:
             img_tensor = torch.load(self.all_data_dirs[index])
         else:
@@ -131,9 +132,11 @@ class FloorPlanDataset(torch.utils.data.Dataset):
                 channel_2 = self.composed_2(img_tensor)
                 channel_3 = self.composed_3(img_tensor)
                 img_tensor = torch.cat([channel_1,channel_2,channel_3], dim=0)
+        if img_tensor.shape[0] == 1: #added by cecilia
+            img_tensor = img_tensor.repeat(3, 1, 1) #added by cecilia
         return img_tensor
     
-    def __getitem__(self, index):
+    #def __getitem__(self, index):
         # try:
         #     # meta info loading
         #     obj_idx = self.all_building_idx[index]
@@ -154,13 +157,27 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         #                 'category': category,
         #                 'cate_onehot': np.asarray(cate_onehot).astype('float32')
         #         }
-        # except:
-        return {'image_tensor': self.__getimg__(index),}
-        
-
-
-
-
-        
-
+        #except:
+        #return {'image_tensor': self.__getimg__(index),}
     
+ 
+    def __getitem__(self, index):
+            # meta info loading
+            obj_idx = self.all_building_idx[index]
+            meta_info = self.meta_info.loc[[obj_idx]]
+            height = self.height_info.at[obj_idx, 'HEIGHT_norm']
+
+            year_built = meta_info.at[obj_idx, 'YearBuilt1']
+            category = meta_info.at[obj_idx, 'UseDescription']
+            age_label = meta_info.at[obj_idx, 'AgeLabel']
+            cate_onehot = meta_info.at[obj_idx, 'CateOneHot']
+
+            img_tensor = self.__getimg__(index)
+            return {
+                'image_tensor': img_tensor,
+                'year_built': year_built,
+                'age_label': age_label.astype('int64'),
+                'height': height.astype('float32'),
+                'category': category,
+                'cate_onehot': np.asarray(cate_onehot).astype('float32')
+            }

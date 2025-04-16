@@ -21,6 +21,7 @@ class VectorQuantizer(nn.Module):
         
         # Flatten input
         flat_input = inputs.view(-1, self._embedding_dim)
+        # Print shapes for debugging
         
         # Calculate distances
         distances = (torch.sum(flat_input**2, dim=1, keepdim=True) 
