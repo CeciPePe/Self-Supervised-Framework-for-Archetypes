@@ -152,3 +152,9 @@ notebooks/outputs/marl_latent.pt
 
 data/data_root_1/*
 !data/data_root_1/.gitkeep
+
+data_pipeline/landing_zone/raw_data/*
+data_pipeline/landing_zone/raw_data/.gitkeep
+
+data_pipeline/trusted_zone/preprocessed_data/*
+data_pipeline/trusted_zone/preprocessed_data/.gitkeep
