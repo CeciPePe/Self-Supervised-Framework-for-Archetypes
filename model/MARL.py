@@ -9,13 +9,14 @@ class MetaInfer(nn.Module):
         super(MetaInfer, self).__init__()
         self.conv = nn.Sequential(
             nn.ReLU(),
-            nn.Conv2d(in_channels=in_channels, out_channels=1, kernel_size=7, stride=3),
+            nn.Conv2d(in_channels=in_channels, out_channels=1, kernel_size=7, stride=3, padding =1),
             nn.BatchNorm2d(1)
         )
-        self.fc = nn.Linear(1 * 3 * 3, out_dim)  # Adjusted input size to match the flattened size
+        self.fc = nn.Linear(1 * 8 * 8, out_dim)  # Adjusted input size to match the flattened size
 
     def forward(self, x):
         x = self.conv(x)
+
         bs, *_ = x.shape
         x = self.fc(x.view(bs, -1))
         return x

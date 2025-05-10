@@ -26,14 +26,13 @@ n_residual_layers = 1
 embedding_dim = 64
 n_embeddings = 218
 beta = .25
-lr = 3e-3
-epochs = 100
+lr = 1e-3
+epochs = 30
 noise=False
 noise_weight=0.05
 img_channel=3 if USE_MULTISCALE else 1
 
-# Set the device to CPU if CUDA is not available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 def train_marl(train_loader=None, validation_loader=None, 
                data_variance=None, val_len=None, year_label_num=None, category_num=None,
                get_pretrain=True, use_multi_task=USE_MULTITASK):
@@ -42,10 +41,10 @@ def train_marl(train_loader=None, validation_loader=None,
                 n_embeddings, embedding_dim, 
                 beta, img_channel).to(device)
     if get_pretrain:
-        vqae.load_state_dict(torch.load("./best_checkpoint/55-vqae-0.04753296934928414.pt", map_location=device))
+        vqae.load_state_dict(torch.load("./best_checkpoint/55-vqae-0.04753296934928414.pt", map_location=torch.device('cpu')))
 
     marl = MARL(vqae, USE_MULTITASK, year_label_num, category_num)
-    optimizer = torch.optim.Adam(marl.parameters(), lr=lr, amsgrad=False)
+    optimizer = torch.optim.Adam(marl.parameters(), lr=lr, weight_decay=1e-5,amsgrad=False)
     train_recon_error = []
     train_height_error = []
     train_age_error = []
@@ -55,19 +54,21 @@ def train_marl(train_loader=None, validation_loader=None,
     test_age_error = []
     test_usage_error = []
 
-
+    patience = 3
+    counter = 0
     best_loss = 1e10
-    
+
+    from collections import deque
+    smoothing_window = 5  # average over last 5 epochs
+    val_loss_history = deque(maxlen=smoothing_window)
+    best_smoothed_loss = float('inf')
+    min_delta = 1e-4
+
     for epoch in range(0, epochs):
         with tqdm(train_loader, unit="batch") as tepoch:
             marl.train()
-            for data_dict in train_loader:
-                data = data_dict['image_tensor']
-                print(f"Input tensor shape before passing to MARL: {data.shape}") 
-                break
             for data_dict in tepoch:
                 data = data_dict['image_tensor']
-                print(f"Input tensor shape: {data.shape}")
                 bs = data.shape[0]
                 data_no_noise = data.to(device)
                 optimizer.zero_grad()
@@ -75,7 +76,6 @@ def train_marl(train_loader=None, validation_loader=None,
                     data = add_noise(data_no_noise, noise_weight=noise_weight)
                 else:
                     data = data_no_noise
-
                 pred = marl(data)
 
                 # recon loss
@@ -147,50 +147,57 @@ def train_marl(train_loader=None, validation_loader=None,
                         ) * batch_size
                 avg_loss += loss / val_len
                 
-                
-        if avg_loss<best_loss:
-            best_loss = avg_loss
+        val_loss_history.append(avg_loss)
+        smoothed_loss = sum(val_loss_history) / len(val_loss_history)
+        
+        if smoothed_loss < best_smoothed_loss - min_delta:
+            best_smoothed_loss = smoothed_loss
             best_epoch = epoch
-            torch.save(marl.state_dict(), f"./checkpoint/{best_epoch}-marl-{best_loss}.pt")
-            torch.save(optimizer.state_dict(), f"./checkpoint/{best_epoch}-adam-{best_loss}.pt")
+            counter = 0
+
+            torch.save(marl.state_dict(), f"./checkpoint/{best_epoch}-marl-{best_smoothed_loss}.pt")
+            torch.save(optimizer.state_dict(), f"./checkpoint/{best_epoch}-adam-{best_smoothed_loss}.pt")
+            
+            # Save errors
+            error = {
+                'train_recon_error': train_recon_error,
+                'test_recon_error': test_recon_error
+            }
             if USE_MULTITASK:
-                error = {
-                    'train_recon_error': train_recon_error,
+                error.update({
                     'train_height_error': train_height_error,
                     'train_age_error': train_age_error,
                     'train_usage_error': train_usage_error,
-                    'test_recon_error': test_recon_error,
                     'test_height_error': test_height_error,
                     'test_age_error': test_age_error,
                     'test_usage_error': test_usage_error
-                }
-            else:
-                error = {
-                    'train_recon_error': train_recon_error,
-                    'test_recon_error': test_recon_error
-                }
-            with open(f"./checkpoint/{best_epoch}-error-{best_loss}.json", 'w', encoding ='utf8') as json_file:
-                json.dump(error, json_file, ensure_ascii = False)
+                })
+            
+            with open(f"./checkpoint/{best_epoch}-error-{best_smoothed_loss}.json", 'w', encoding='utf8') as json_file:
+                json.dump(error, json_file, ensure_ascii=False)
+            print(f"Epoch {epoch}: Raw Val Loss = {avg_loss:.6f} | Smoothed Val Loss = {smoothed_loss:.6f} | Best = {best_smoothed_loss:.6f} | Patience Counter = {counter}")
 
-        print(f'Validation Loss: {avg_loss}')
 
+        else:
+            counter += 1
+            if counter >= patience:
+                print(f"Early stopping triggered at epoch {epoch}. Best smoothed val loss: {best_smoothed_loss}")
+                break
+    # <-- END OF FOR LOOP, place save here
+    torch.save(marl.state_dict(), f"./checkpoint/last-marl.pt")
+    print("Final model saved to ./checkpoint/last-marl.pt")
 
 if __name__ == "__main__":
     #Load Dataset
-    floor = FloorPlanDataset(multi_scale=True, root='./data/data_root/data00/', data_config='./data/data_config/', preprocess=True)
-    
+    floor = FloorPlanDataset(multi_scale=True, root='./data/data_root_1/data02/', data_config='./data/data_config/', preprocess=True)
     data_variance = floor.var
     val_len = int(len(floor)/10)
     train_set, val_set = torch.utils.data.random_split(floor, [len(floor)-val_len, val_len])
-    if len(train_set) == 0:
-        raise ValueError("Error: The dataset is empty. Check your data loading process.")
 
-    #print(f"data shape: {floor[0]['image_tensor'].shape}, dataset size: {len(floor)}, data variance: {data_variance}")
+    print(f"data shape: {floor[0]['image_tensor'].shape}, dataset size: {len(floor)}, data variance: {data_variance}")
     train_loader = torch.utils.data.DataLoader(train_set, batch_size = batch_size, shuffle = True)
-
     validation_loader = torch.utils.data.DataLoader(val_set, batch_size = batch_size, shuffle = False)
 
     train_marl(train_loader, validation_loader, \
                floor.var, int(len(floor)/10), floor.age_label_num, floor.category_num)
-
 

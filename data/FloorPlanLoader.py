@@ -22,7 +22,7 @@ def load_FloorPlan(multi_scale=False):
 
 # Floor Plan
 class FloorPlanDataset(torch.utils.data.Dataset):
-    def __init__(self, root='../data/data_root/data00/', subset=None, 
+    def __init__(self, root='../data/data_root_1/data02/', subset=None, 
                  data_config='../data/data_config/', 
                  add_noise=False, multi_scale=False, 
                  preprocess=False):
@@ -67,12 +67,12 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         self.year_mapping = year_map
         self._init_data_info()
         self.age_label_num = self.meta_info['AgeLabel'].max()+1
-        self.category_num = 8
+        self.category_num = 5
 
     def _init_data_info(self):
         all_file_names = os.listdir(self.data_root)
-        self.meta_info = pd.read_csv(os.path.join(self.data_config, 'meta.csv'), index_col='OBJECTID')
-        self.height_info = pd.read_csv(os.path.join(self.data_config, 'height.csv'), index_col='OBJECTID')
+        self.meta_info = pd.read_csv(os.path.join(self.data_config, 'meta_trsa.csv'), index_col='OBJECTID')
+        self.height_info = pd.read_csv(os.path.join(self.data_config, 'height_trsa.csv'), index_col='OBJECTID')
         self.meta_info['AgeLabel'] = (LabelEncoder().fit_transform(list(map(self.year_mapping,self.meta_info['YearBuilt1'])))).astype('int64')
         self.meta_info['CateOneHot'] = OneHotEncoder().fit_transform(self.meta_info.UseDescription.values.reshape(-1,1)).toarray().tolist()
 
@@ -85,7 +85,8 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         for name in all_file_names:
             if name.endswith(".png" if not self.preprocess else ".pt"):
                 self.all_data_dirs.append(self.data_root + name)
-                self.all_building_idx.append(int(name.split('.')[0]))
+                self.all_building_idx.append(name.split('.')[0])
+                
 
     def data_variance(self):
         try:
@@ -132,36 +133,11 @@ class FloorPlanDataset(torch.utils.data.Dataset):
                 channel_2 = self.composed_2(img_tensor)
                 channel_3 = self.composed_3(img_tensor)
                 img_tensor = torch.cat([channel_1,channel_2,channel_3], dim=0)
-        if img_tensor.shape[0] == 1: #added by cecilia
-            img_tensor = img_tensor.repeat(3, 1, 1) #added by cecilia
         return img_tensor
     
-    #def __getitem__(self, index):
-        # try:
-        #     # meta info loading
-        #     obj_idx = self.all_building_idx[index]
-        #     meta_info = self.meta_info.loc[[obj_idx]]
-        #     height = self.height_info.at[obj_idx, 'HEIGHT_norm']
-
-        #     year_built = meta_info.at[obj_idx, 'YearBuilt1']
-        #     category = meta_info.at[obj_idx, 'UseDescription']
-        #     age_label = meta_info.at[obj_idx, 'AgeLabel']
-        #     cate_onehot = meta_info.at[obj_idx, 'CateOneHot']
-
-        #     img_tensor = self.__getimg__(index)
-        #     return {
-        #                 'image_tensor': img_tensor,
-        #                 'year_built': year_built,
-        #                 'age_label': age_label.astype('int64'),
-        #                 'height': height.astype('float32'),
-        #                 'category': category,
-        #                 'cate_onehot': np.asarray(cate_onehot).astype('float32')
-        #         }
-        #except:
-        #return {'image_tensor': self.__getimg__(index),}
-    
- 
     def __getitem__(self, index):
+
+        try:
             # meta info loading
             obj_idx = self.all_building_idx[index]
             meta_info = self.meta_info.loc[[obj_idx]]
@@ -174,10 +150,20 @@ class FloorPlanDataset(torch.utils.data.Dataset):
 
             img_tensor = self.__getimg__(index)
             return {
-                'image_tensor': img_tensor,
-                'year_built': year_built,
-                'age_label': age_label.astype('int64'),
-                'height': height.astype('float32'),
-                'category': category,
-                'cate_onehot': np.asarray(cate_onehot).astype('float32')
-            }
+                        'image_tensor': img_tensor,
+                        'year_built': year_built,
+                        'age_label': age_label.astype('int64'),
+                        'height': height.astype('float32'),
+                        'category': category,
+                        'cate_onehot': np.asarray(cate_onehot).astype('float32')
+                }
+        except:
+            return {'image_tensor': self.__getimg__(index),}
+        
+
+
+
+
+        
+
+    

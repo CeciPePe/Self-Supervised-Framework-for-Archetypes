@@ -37,7 +37,7 @@ def run_preprocess():
     # Extract images from GeoJSON
     export_geojson_features_as_images(
         "data_pipeline/trusted_zone/preprocessed_data/cleaned_catastro.geojson",
-        "data/data_root_1"
+        "data/data_root_1/data02"
     )
 
 if __name__ == "__main__":
