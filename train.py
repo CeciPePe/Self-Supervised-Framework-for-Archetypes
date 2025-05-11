@@ -27,7 +27,7 @@ embedding_dim = 64
 n_embeddings = 218
 beta = .25
 lr = 1e-3
-epochs = 30
+epochs = 50
 noise=False
 noise_weight=0.05
 img_channel=3 if USE_MULTISCALE else 1
@@ -54,7 +54,7 @@ def train_marl(train_loader=None, validation_loader=None,
     test_age_error = []
     test_usage_error = []
 
-    patience = 3
+    patience = 5
     counter = 0
     best_loss = 1e10
 
@@ -83,7 +83,6 @@ def train_marl(train_loader=None, validation_loader=None,
                 recon_error = F.mse_loss(data_recon, data) / data_variance
                 train_recon_error.append(recon_error.item())
                 
-
                 if USE_MULTITASK:
                     # height infer
                     height_pred = pred['height']

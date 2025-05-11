@@ -31,7 +31,7 @@ def export_geojson_features_as_images(geojson_file, output_folder, image_size=25
         ax.set_yticks([])
         ax.set_axis_off()
 
-        ref = str(row.get("reference", f"feature_{idx + 1}")).replace("/", "_").replace("\\", "_")
+        ref = str(row.get("id"))
         output_path = os.path.join(output_folder, f"{ref}.png")
 
         plt.savefig(output_path, bbox_inches="tight", pad_inches=0)

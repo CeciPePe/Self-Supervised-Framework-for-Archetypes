@@ -42,8 +42,7 @@ def enrich_building_with_floors(building_path, buildingpart_path, output_path, c
         pass
     else:
         raise KeyError("Column 'numberOfFl' not found after merge.")
-
-
+    shp1_updated['id'] = range(1, len(shp1_updated) + 1)
     # Save the updated shapefile
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     shp1_updated.to_file(output_path)
