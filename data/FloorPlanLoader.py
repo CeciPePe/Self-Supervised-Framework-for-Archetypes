@@ -67,12 +67,12 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         self.year_mapping = year_map
         self._init_data_info()
         self.age_label_num = self.meta_info['AgeLabel'].max()+1
-        self.category_num = 5
+        self.category_num = 4
 
     def _init_data_info(self):
         all_file_names = os.listdir(self.data_root)
-        self.meta_info = pd.read_csv(os.path.join(self.data_config, 'meta_trsa_tertiary.csv'), index_col='OBJECTID')
-        self.height_info = pd.read_csv(os.path.join(self.data_config, 'height_trsa_tertiary.csv'), index_col='OBJECTID')
+        self.meta_info = pd.read_csv(os.path.join(self.data_config, 'meta_trsa_tertiary_5.csv'), index_col='OBJECTID')
+        self.height_info = pd.read_csv(os.path.join(self.data_config, 'height_trsa_tertiary_5.csv'), index_col='OBJECTID')
         self.meta_info['AgeLabel'] = (LabelEncoder().fit_transform(list(map(self.year_mapping,self.meta_info['YearBuilt1'])))).astype('int64')
         self.meta_info['CateOneHot'] = OneHotEncoder().fit_transform(self.meta_info.UseDescription.values.reshape(-1,1)).toarray().tolist()
 
@@ -118,6 +118,7 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         # image loading
         if self.preprocess:
             img_tensor = torch.load(self.all_data_dirs[index])
+
         else:
             img = Image.open(self.all_data_dirs[index])
             if self.add_noise:
@@ -136,7 +137,8 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         return img_tensor
     
     def __getitem__(self, index):
-
+        if index >= len(self.all_data_dirs) or index >= len(self.all_building_idx):
+            raise IndexError(f"Index {index} out of range: all_data_dirs={len(self.all_data_dirs)}, all_building_idx={len(self.all_building_idx)}")
         try:
             # meta info loading
             obj_idx = self.all_building_idx[index]
