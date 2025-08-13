@@ -22,8 +22,8 @@ def load_FloorPlan(multi_scale=False):
 
 # Floor Plan
 class FloorPlanDataset(torch.utils.data.Dataset):
-    def __init__(self, root='../data/data_root_1/data_tert/', subset=None, 
-                 data_config='../data/data_config/tertiary/', 
+    def __init__(self, root='../data/data_br/data_all/residential', subset=None, 
+                 data_config='../data/data_config_1/residential/Residential', 
                  add_noise=False, multi_scale=False, 
                  preprocess=False):
         
@@ -71,8 +71,8 @@ class FloorPlanDataset(torch.utils.data.Dataset):
 
     def _init_data_info(self):
         all_file_names = os.listdir(self.data_root)
-        self.meta_info = pd.read_csv(os.path.join(self.data_config, 'meta_trsa_tertiary_5.csv'), index_col='OBJECTID')
-        self.height_info = pd.read_csv(os.path.join(self.data_config, 'height_trsa_tertiary_5.csv'), index_col='OBJECTID')
+        self.meta_info = pd.read_csv(os.path.join(self.data_config, 'meta_trsa_Residential.csv'), index_col='OBJECTID')
+        self.height_info = pd.read_csv(os.path.join(self.data_config, 'height_trsa_Residential.csv'), index_col='OBJECTID')
         self.meta_info['AgeLabel'] = (LabelEncoder().fit_transform(list(map(self.year_mapping,self.meta_info['YearBuilt1'])))).astype('int64')
         self.meta_info['CateOneHot'] = OneHotEncoder().fit_transform(self.meta_info.UseDescription.values.reshape(-1,1)).toarray().tolist()
 
