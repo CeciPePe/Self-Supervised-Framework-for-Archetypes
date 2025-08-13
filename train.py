@@ -26,8 +26,8 @@ n_residual_layers = 1
 embedding_dim = 64
 n_embeddings = 218
 beta = .25
-lr = 1e-4
-epochs = 50
+lr = 3e-3
+epochs = 100
 noise=False
 noise_weight=0.05
 img_channel=3 if USE_MULTISCALE else 1
@@ -188,7 +188,7 @@ def train_marl(train_loader=None, validation_loader=None,
 
 if __name__ == "__main__":
     #Load Dataset
-    floor = FloorPlanDataset(multi_scale=True, root='./data/data_root_1/data_tert_2/', data_config='./data/data_config/tertiary/', preprocess=True)
+    floor = FloorPlanDataset(multi_scale=True, root='./data/data_br/data_all/residential/', data_config='./data/data_config_1/residential/Residential/', preprocess=True)
     data_variance = floor.var
     val_len = int(len(floor)/10)
     train_set, val_set = torch.utils.data.random_split(floor, [len(floor)-val_len, val_len])
