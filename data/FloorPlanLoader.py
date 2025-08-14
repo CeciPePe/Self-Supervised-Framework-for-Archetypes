@@ -22,7 +22,7 @@ def load_FloorPlan(multi_scale=False):
 
 # Floor Plan
 class FloorPlanDataset(torch.utils.data.Dataset):
-    def __init__(self, root='../data/data_br/data_all/residential', subset=None, 
+    def __init__(self, root='../data/data_br/data_all/residential/', subset=None, 
                  data_config='../data/data_config_1/residential/Residential', 
                  add_noise=False, multi_scale=False, 
                  preprocess=False):
@@ -33,6 +33,7 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         self.add_noise = add_noise
         self.multi_scale = multi_scale
         self.preprocess = preprocess
+
         self._init_config()
         self.var = self.data_variance()
 
@@ -67,7 +68,8 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         self.year_mapping = year_map
         self._init_data_info()
         self.age_label_num = self.meta_info['AgeLabel'].max()+1
-        self.category_num = 4
+        self.category_num = 1
+        self.num_second_use = int(self.meta_info['second_type'].max()) + 1  # Assumes 0,1,2,... labels
 
     def _init_data_info(self):
         all_file_names = os.listdir(self.data_root)
@@ -75,7 +77,9 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         self.height_info = pd.read_csv(os.path.join(self.data_config, 'height_trsa_Residential.csv'), index_col='OBJECTID')
         self.meta_info['AgeLabel'] = (LabelEncoder().fit_transform(list(map(self.year_mapping,self.meta_info['YearBuilt1'])))).astype('int64')
         self.meta_info['CateOneHot'] = OneHotEncoder().fit_transform(self.meta_info.UseDescription.values.reshape(-1,1)).toarray().tolist()
-
+        self.meta_info['orientation'] = self.meta_info['orientation'].fillna(0.0).astype('float32')
+        self.meta_info['street_width'] = (self.meta_info['street_width'].replace([np.inf, -np.inf], np.nan)) # Replace inf with NaN.fillna(0.0)                         # Replace NaN with 0.astype('float32'))
+        self.meta_info['second_type'] = self.meta_info['second_type'].fillna(0).astype('int')
         self.all_data_dirs = []
         self.all_building_idx = []
         if self.subset is not None:
@@ -90,6 +94,7 @@ class FloorPlanDataset(torch.utils.data.Dataset):
 
     def data_variance(self):
         try:
+
             value = torch.load(os.path.join(self.data_root, 'var_pt'))
         except:
             value = np.var(np.array([self.preload(i).numpy() for i in range(0,self.__len__())]))
@@ -150,6 +155,10 @@ class FloorPlanDataset(torch.utils.data.Dataset):
             age_label = meta_info.at[obj_idx, 'AgeLabel']
             cate_onehot = meta_info.at[obj_idx, 'CateOneHot']
 
+            orientation = meta_info.at[obj_idx, 'orientation']
+            street_width = meta_info.at[obj_idx, 'street_width']
+            second_type = meta_info.at[obj_idx, 'second_type']
+
             img_tensor = self.__getimg__(index)
             return {
                         'image_tensor': img_tensor,
@@ -157,7 +166,10 @@ class FloorPlanDataset(torch.utils.data.Dataset):
                         'age_label': age_label.astype('int64'),
                         'height': height.astype('float32'),
                         'category': category,
-                        'cate_onehot': np.asarray(cate_onehot).astype('float32')
+                        'cate_onehot': np.asarray(cate_onehot).astype('float32'),
+                        'orientation': np.float32(orientation),
+                        'street_width': np.float32(street_width),
+                        'second_use_label': second_type
                 }
         except:
             return {'image_tensor': self.__getimg__(index),}
