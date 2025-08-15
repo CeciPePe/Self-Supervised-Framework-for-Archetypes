@@ -22,15 +22,24 @@ class MetaInfer(nn.Module):
         return x
 
 class MARL(nn.Module):
-    def __init__(self, vqae, add_downstream=False, year_label_num=None, category_num=None):
+    def __init__(self, vqae, add_downstream=False, year_label_num=None, category_num=None, num_second_use=None):
         super(MARL, self).__init__()
         self.vqae = vqae
         self.use_downstream = add_downstream
+
         if add_downstream:
+            # Existing tasks
             self.height_infer = MetaInfer(32, 1).to(device)
             self.age_infer = MetaInfer(32, year_label_num).to(device)
             self.category_infer = MetaInfer(32, category_num).to(device)
 
+            # NEW: Always create these (no if checks)
+            self.orientation_infer = MetaInfer(32, 1).to(device)           # MainOrientation
+            self.street_width_infer = MetaInfer(32, 1).to(device)          # MainStreetWidth
+            self.second_use_infer = MetaInfer(32, num_second_use).to(device)  # SecondUseDescription
+
+            # Save number of classes for reference
+            self.num_second_use = num_second_use
     def forward(self, x):
         if not self.use_downstream:
             return {'vqae': self.vqae(x)}
@@ -44,11 +53,16 @@ class MARL(nn.Module):
         height_pred = self.height_infer(latent)
         age_pred = F.softmax(self.age_infer(latent), dim=1)
         category_pred = torch.sigmoid(self.category_infer(latent))
-
+        orientation_pred = self.orientation_infer(latent)           # regression
+        street_width_pred = self.street_width_infer(latent)         # regression
+        second_use_pred = F.softmax(self.second_use_infer(latent), dim=1)  # classification
         return {
             'latent': latent,
             'vqae': [vq_loss, data_recon, perplexity],
             'height': height_pred,
             'age': age_pred,
-            'category': category_pred
+            'category': category_pred,
+            'orientation': orientation_pred,
+            'street_width': street_width_pred,
+            'second_use': second_use_pred
         }
