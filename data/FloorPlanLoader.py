@@ -22,8 +22,8 @@ def load_FloorPlan(multi_scale=False):
 
 # Floor Plan
 class FloorPlanDataset(torch.utils.data.Dataset):
-    def __init__(self, root='../data/data_br/data_all/residential/', subset=None, 
-                 data_config='../data/data_config_1/residential/Residential', 
+    def __init__(self, root='data/data_br/residential/', subset=None, 
+                 data_config='data/data_config_1/residential/Residential/', 
                  add_noise=False, multi_scale=False, 
                  preprocess=False):
         
@@ -78,7 +78,7 @@ class FloorPlanDataset(torch.utils.data.Dataset):
         self.meta_info['AgeLabel'] = (LabelEncoder().fit_transform(list(map(self.year_mapping,self.meta_info['YearBuilt1'])))).astype('int64')
         self.meta_info['CateOneHot'] = OneHotEncoder().fit_transform(self.meta_info.UseDescription.values.reshape(-1,1)).toarray().tolist()
         self.meta_info['orientation'] = self.meta_info['orientation'].fillna(0.0).astype('float32')
-        self.meta_info['street_width'] = (self.meta_info['street_width'].replace([np.inf, -np.inf], np.nan)) # Replace inf with NaN.fillna(0.0)                         # Replace NaN with 0.astype('float32'))
+        self.meta_info['street_width'] = (self.meta_info['street_width'].replace([np.inf, -np.inf], np.nan).astype('float32'))
         self.meta_info['second_type'] = self.meta_info['second_type'].fillna(0).astype('int')
         self.all_data_dirs = []
         self.all_building_idx = []
