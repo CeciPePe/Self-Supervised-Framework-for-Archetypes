@@ -32,16 +32,20 @@ noise=False
 noise_weight=0.05
 img_channel=3 if USE_MULTISCALE else 1
 
+dataset_name = 'industrial'
+dataset_name_m ='Industrial'
 
 def train_marl(train_loader=None, validation_loader=None, 
                data_variance=None, val_len=None, year_label_num=None, category_num=None, num_second_use=None,
-               get_pretrain=False, use_multi_task=USE_MULTITASK):
+               get_pretrain=True, use_multi_task=USE_MULTITASK):
     
     vqae = VQAE(n_hiddens, n_residual_hiddens, n_residual_layers,
                 n_embeddings, embedding_dim, 
                 beta, img_channel).to(device)
     if get_pretrain:
-        vqae.load_state_dict(torch.load("./best_checkpoint/final/55-vqae-0.04753296934928414.pt"))
+        checkpoint = torch.load("./best_checkpoint/best.pt")
+        # extract model_state_dict (VQAE is part of MARL)
+        vqae.load_state_dict(checkpoint['model_state_dict'], strict=False)
 
     marl = MARL(vqae, USE_MULTITASK, year_label_num, category_num, num_second_use)
     optimizer = torch.optim.Adam(marl.parameters(), lr=lr, amsgrad=False)
@@ -184,7 +188,7 @@ def train_marl(train_loader=None, validation_loader=None,
                             )
                     avg_loss += loss 
                 
-        avg_loss /= len(validation_loader)        
+        avg_loss /= len(validation_loader)       
         if avg_loss<best_loss:
             best_loss = avg_loss
             best_epoch = epoch
@@ -193,7 +197,7 @@ def train_marl(train_loader=None, validation_loader=None,
                 'model_state_dict': marl.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'loss': best_loss,
-            }, "./checkpoint/best.pt")
+            }, f"./checkpoint/best_{dataset_name}.pt")
             print(f"✅ Best model updated at epoch {epoch} with val_loss={best_loss:.4f}")
             
             epochs_no_improve = 0
@@ -235,7 +239,7 @@ def train_marl(train_loader=None, validation_loader=None,
 
 if __name__ == "__main__":
     #Load Dataset
-    floor = FloorPlanDataset(multi_scale=True, root='./data/data_br/residential/', data_config='./data/data_config_1/residential/Residential/', preprocess=True)
+    floor = FloorPlanDataset(multi_scale=True, root=f'./data/data_br/{dataset_name}/', data_config=f'./data/data_config_1/tertiary/{dataset_name_m}/', preprocess=True)
     data_variance = floor.var
     val_len = int(len(floor)/10)
     train_set, val_set = torch.utils.data.random_split(floor, [len(floor)-val_len, val_len])
