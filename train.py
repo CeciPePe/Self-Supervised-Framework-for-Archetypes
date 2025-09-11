@@ -7,7 +7,6 @@ from data.FloorPlanLoader import *
 import torch.nn.functional as F
 import random
 import json
-from collections import Counter
 
 
 
@@ -33,8 +32,8 @@ noise=False
 noise_weight=0.05
 img_channel=3 if USE_MULTISCALE else 1
 
-dataset_name = 'sports_facilities'
-dataset_name_m ='Sports_facilities'
+dataset_name = 'residential'
+dataset_name_m ='Residential'
 
 def train_marl(train_loader=None, validation_loader=None, 
                data_variance=None, val_len=None, year_label_num=None, category_num=None, num_second_use=None,
@@ -118,7 +117,7 @@ def train_marl(train_loader=None, validation_loader=None,
                     # Second use (classification)
                     second_use_pred = pred['second_use']
                     second_use_labels = data_dict['second_use_label'].to(device).long()
-                    second_use_error = criterion_second_use(second_use_pred, second_use_labels)
+                    second_use_error = F.cross_entropy(second_use_pred, second_use_labels)
                     train_seconduse_error.append(second_use_error.item())
 
                 loss = (recon_error + vq_loss) + height_error + age_error + category_error + orientation_error + streetwidth_error + second_use_error   
@@ -176,9 +175,8 @@ def train_marl(train_loader=None, validation_loader=None,
                     # Second use (classification)
                     second_use_pred = pred['second_use']
                     second_use_labels = data_dict['second_use_label'].to(device).long()
-                    second_use_error = criterion_second_use(second_use_pred, second_use_labels)
+                    second_use_error = F.cross_entropy(second_use_pred, second_use_labels)
                     test_seconduse_error.append(second_use_error.item())
-
 
                     loss = (recon_error.item() \
                             + height_error.item()\
@@ -241,7 +239,7 @@ def train_marl(train_loader=None, validation_loader=None,
 
 if __name__ == "__main__":
     #Load Dataset
-    floor = FloorPlanDataset(multi_scale=True, root=f'./data/data_br/{dataset_name}/', data_config=f'./data/data_config_1/tertiary/{dataset_name_m}/', preprocess=True)
+    floor = FloorPlanDataset(multi_scale=True, root=f'./data/data_br/{dataset_name}/', data_config=f'./data/data_config_1/residential/{dataset_name_m}/', preprocess=True)
     data_variance = floor.var
     val_len = int(len(floor)/10)
     train_set, val_set = torch.utils.data.random_split(floor, [len(floor)-val_len, val_len])
@@ -249,17 +247,7 @@ if __name__ == "__main__":
     print(f"data shape: {floor[0]['image_tensor'].shape}, dataset size: {len(floor)}, data variance: {data_variance}")
     train_loader = torch.utils.data.DataLoader(train_set, batch_size = batch_size, shuffle = True)
     validation_loader = torch.utils.data.DataLoader(val_set, batch_size = batch_size, shuffle = False)
-    all_second_use_labels = [floor[i]['second_use_label'] for i in range(len(floor))]
-    label_counts = Counter(all_second_use_labels)
 
-    num_classes = max(label_counts.keys()) + 1  # assumes labels are 0,1,2,...
-    counts = [label_counts[i] if i in label_counts else 0 for i in range(num_classes)]
-
-    # Compute inverse frequency weights
-    total = sum(counts)
-    weights = [total / (c + 1e-6) for c in counts]  # add small eps to avoid division by zero
-    weights = torch.tensor(weights).float().to(device)
-    criterion_second_use = torch.nn.CrossEntropyLoss(weight=weights)
     train_marl(train_loader, validation_loader, \
                floor.var, int(len(floor)/10), floor.age_label_num, floor.category_num, floor.num_second_use)
 
