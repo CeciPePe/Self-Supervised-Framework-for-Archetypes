@@ -32,8 +32,8 @@ noise=False
 noise_weight=0.05
 img_channel=3 if USE_MULTISCALE else 1
 
-dataset_name = 'residential'
-dataset_name_m ='Residential'
+dataset_name = 'commercial'
+dataset_name_m ='Commercial'
 
 def train_marl(train_loader=None, validation_loader=None, 
                data_variance=None, val_len=None, year_label_num=None, category_num=None, num_second_use=None,
@@ -239,7 +239,7 @@ def train_marl(train_loader=None, validation_loader=None,
 
 if __name__ == "__main__":
     #Load Dataset
-    floor = FloorPlanDataset(multi_scale=True, root=f'./data/data_br/{dataset_name}/', data_config=f'./data/data_config_1/residential/{dataset_name_m}/', preprocess=True)
+    floor = FloorPlanDataset(multi_scale=True, root=f'./data/data_br/{dataset_name}/', data_config=f'./data/data_config_1/tertiary/{dataset_name_m}/', preprocess=True)
     data_variance = floor.var
     val_len = int(len(floor)/10)
     train_set, val_set = torch.utils.data.random_split(floor, [len(floor)-val_len, val_len])

@@ -8,8 +8,10 @@ from utils import *
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
-dataset_name = 'sports_facilities'
-dataset_name_m ='Sports_facilities'
+
+
+dataset_name = 'residential'
+dataset_name_m ='Residential'
 
 def load_FloorPlan(multi_scale=False):
     #Load Dataset
@@ -25,7 +27,7 @@ def load_FloorPlan(multi_scale=False):
 # Floor Plan
 class FloorPlanDataset(torch.utils.data.Dataset):
     def __init__(self, root=f'data/data_br/{dataset_name}/', subset=None, 
-                 data_config=f'data/data_config_1/tertiary/{dataset_name_m}/', 
+                 data_config=f'data/data_config_1/residential/{dataset_name_m}/', 
                  add_noise=False, multi_scale=False, 
                  preprocess=False):
         

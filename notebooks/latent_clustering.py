@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import sys
+import os
+import numpy as np
 sys.path.append('../')
 from model.VQAE import VQAE
 from model.MARL import MARL
@@ -16,6 +18,7 @@ import torch.nn.functional as F
 import random
 import json
 import torchvision
+from torchvision import transforms
 import matplotlib.pyplot as plt
 import geopandas as gpd
 from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
@@ -38,7 +41,6 @@ from torchvision.utils import save_image
 # %load_ext autoreload
 # %autoreload 2
 import csv
-import numpy
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
@@ -51,12 +53,12 @@ from umap import UMAP
 import matplotlib.pyplot as plt
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 device = 'cpu'
-dataset_name = 'sports_facilities'
-dataset_name_m ='Sports_facilities'
-curr_data = 'BR_Sports_facilities'
+dataset_name = 'commercial'
+dataset_name_m ='Commercial'
+curr_data = 'BR_Commercial'
 
 
-# In[3]:
+# In[2]:
 
 
 #Hyperparameter
@@ -76,7 +78,7 @@ img_channel=3 if USE_MULTISCALE else 1
 
 # ### prepare latent.pt file
 
-# In[4]:
+# In[3]:
 
 
 #Load Dataset
@@ -97,43 +99,52 @@ for param in vqae.parameters():
 for param in marl.parameters():
     param.to('cpu')
 
-# marl.eval()
-# latents = None
-# with torch.no_grad():
-#     for data in tqdm(data_loader):
-#         data = data['image_tensor'].to(device)
-#         valid_recon = marl(data)
-#         quantized = valid_recon['latent']
-#         if latents is not None:
-#             latents = torch.cat([latents, quantized], dim=0)
-#         else: 
-#             latents = quantized
-# latent_file_path = f'../data/data_root/marl_latent_{curr_data}.pt'
-# print(f"finished latents configuration, now saving to {latent_file_path} ...")
-# torch.save(latents, latent_file_path)
-# print(f"latent saved to {latent_file_path} ...")
+# Compute VQAE latents in-order with dataset (no shuffle)
+latent_file_path = f'../data/data_root/marl_latent_{curr_data}.pt'
+os.makedirs(os.path.dirname(latent_file_path), exist_ok=True)
+
+# Try to load existing latents first
+if os.path.exists(latent_file_path):
+    print(f"Loading existing latents from {latent_file_path}")
+    latents = torch.load(latent_file_path, map_location=device)
+    sample_paths = floor.all_data_dirs.copy()
+else:
+    print("Computing latents...")
+    marl.eval()
+    latents = None
+    sample_paths = floor.all_data_dirs.copy()
+    with torch.no_grad():
+        for batch in tqdm(data_loader, desc='Extracting latents'):
+            data = batch['image_tensor'].to(device)
+            out = marl(data)
+            quantized = out['latent']
+            latents = quantized if latents is None else torch.cat([latents, quantized], dim=0)
+    
+    print(f"Saving latents to {latent_file_path}")
+    torch.save(latents, latent_file_path)
+    print(f"Latents saved successfully")
+
+# Ensure results directory exists
+results_dir = f"../results/recon_img/{dataset_name}"
+os.makedirs(results_dir, exist_ok=True)
 
 
 # # Embedding Space Visualization
 # ## Visualize the latent with UMAP and T-SNE
 
-# In[5]:
+# In[4]:
 
 
-latent_file_path = f'../data/data_br/{dataset_name}/'
-pt_files = [f for f in os.listdir(latent_file_path) if f.endswith('.pt')]
-
-# Load each file into a list
-latents = [torch.load(os.path.join(latent_file_path, f)) for f in pt_files]
+# latents: [N, C, H, W], sample_paths aligned to dataset order
 floor = FloorPlanDataset(multi_scale=True, root=f'../data/data_br/{dataset_name}/',\
                          data_config=f'../data/data_config_1/tertiary/{dataset_name_m}/', preprocess=True)
 data_loader = torch.utils.data.DataLoader(floor, batch_size=batch_size, shuffle=False)
 
 
-# In[6]:
+# In[5]:
 
 
-latents = torch.stack(latents)  # assuming latents is a list of tensors
+# Flatten latents for dimensionality reduction
 
 neighbors_list = [30,50]
 
@@ -151,7 +162,7 @@ for n_neighbors in neighbors_list:
 
 
 
-# In[7]:
+# In[6]:
 
 
 umap = UMAP(n_neighbors =50, n_components=2, random_state=42)
@@ -167,19 +178,10 @@ ax.scatter(data_2d_umap[:, 0], data_2d_umap[:, 1], s=0.5)
 plt.show()
 
 
-# In[8]:
+# In[7]:
 
 
-latent_file_path = f'../data/data_br/{dataset_name}/'
-pt_files = [f for f in os.listdir(latent_file_path) if f.endswith('.pt')]
-
-# Load each file into a list
-latents = [torch.load(os.path.join(latent_file_path, f)) for f in pt_files]
-floor = FloorPlanDataset(multi_scale=True, root=f'../data/data_br/{dataset_name}/',\
-                         data_config=f'../data/data_config_1/tertiary/{dataset_name_m}/', preprocess=True)
-data_loader = torch.utils.data.DataLoader(floor, batch_size=batch_size, shuffle=False)
-
-latents = torch.stack(latents)  # assuming latents is a list of tensors
+# Reuse computed latents for TSNE
 
 perplexities = [5,10,15,20, 30]
 
@@ -194,7 +196,7 @@ for perplexity in perplexities:
     plt.show()
 
 
-# In[9]:
+# In[8]:
 
 
 tsne = TSNE(n_components=2, perplexity=30, init='pca', random_state=42)
@@ -211,7 +213,7 @@ plt.show()
 
 # ### deciding the number of clusters
 
-# In[10]:
+# In[9]:
 
 
 def calculate_wcss(latents):
@@ -226,7 +228,7 @@ def calculate_wcss(latents):
 wcss = calculate_wcss(latents)
 
 
-# In[11]:
+# In[10]:
 
 
 # Convert list to DataFrame
@@ -235,7 +237,7 @@ wcss_df.to_csv(f'wcss_{curr_data}.csv',index=False)
 wcss_df
 
 
-# In[12]:
+# In[11]:
 
 
 def plot_elbow(wcss, filename=None):
@@ -249,7 +251,7 @@ def plot_elbow(wcss, filename=None):
     plt.savefig(filename)
 
 
-# In[13]:
+# In[12]:
 
 
 # plot the elbow graph
@@ -258,7 +260,7 @@ plot_elbow(wcss)
 
 # the number of clusters are set to 5, 10, 15
 
-# In[14]:
+# In[13]:
 
 
 def calculate_slope(points):
@@ -277,7 +279,7 @@ def find_optimal_point(slopes, drop_threshold=0.1):
     return optimal_point
 
 
-# In[15]:
+# In[14]:
 
 
 # Calculate slopes
@@ -289,7 +291,7 @@ optimal_point = find_optimal_point(slopes)
 print("Optimal point:", optimal_point)
 
 
-# In[16]:
+# In[15]:
 
 
 # Plot the slopes
@@ -304,7 +306,7 @@ print(f"Slope plot saved to {save_path}")
 plt.show()
 
 
-# In[17]:
+# In[16]:
 
 
 from kneed import KneeLocator
@@ -316,7 +318,7 @@ print(wcss)
 
 
 
-# In[18]:
+# In[17]:
 
 
 if kneedle.knee is None:
@@ -344,7 +346,7 @@ if kneedle.knee is None:
 
 # ### Clustering
 
-# In[19]:
+# In[18]:
 
 
 n_clusters= kneedle.knee
@@ -354,11 +356,11 @@ data_latent = latents # this is the data for clustering
 print(n_clusters)
 
 
-# In[20]:
+# In[19]:
 
 
 #Initialize the class object
-kmeans = KMeans(n_clusters=n_clusters)
+kmeans = KMeans(n_clusters=n_clusters, random_state=42)
 data = torch.flatten(data_latent, start_dim=1).cpu()
 # #predict the labels of clusters.
 label = kmeans.fit_predict(data)
@@ -371,21 +373,20 @@ print(cluster_centers.shape, data.shape)
 
 center_list = closest
 print(center_list)
-df = np.stack((label, floor.all_data_dirs)).transpose()
-df = pd.DataFrame(df,columns=['label','data'])
+df = pd.DataFrame({'label': label, 'data': sample_paths})
 
 
-# In[21]:
+# In[20]:
 
 
 def calculate_index_png(index):
-    image_path = floor.all_data_dirs[index]  # Replace with appropriate image paths list
+    image_path = sample_paths[index]
     file_name, file_extension = os.path.splitext(image_path)
     num_index = os.path.basename(file_name)
     return num_index
 
 
-# In[22]:
+# In[21]:
 
 
 # Save closest points and cluster centers to CSV
@@ -393,9 +394,8 @@ df_center = pd.DataFrame({'Cluster Center': cluster_centers.tolist(), 'Closest P
 df_center['index_png'] = df_center['Closest Point Index'].apply(lambda x: calculate_index_png(x))
 df_center.to_csv(f'../results/recon_img/{dataset_name}/MARL_{curr_data}_{n_clusters}cluster_centers.csv', index=False)
 
-df_center_index = np.stack((label, floor.all_data_dirs)).transpose()
-df_center_index = pd.DataFrame(df_center_index,columns=['label','data'])
-df_center_index['index'] = df_center_index['data'].str.extract(r'(\d+).pt')
+df_center_index = pd.DataFrame({'label': label, 'data': sample_paths})
+df_center_index['index'] = df_center_index['data'].str.extract(r'(\d+)\.pt')
 df_center_index = df_center_index.drop(['data'], axis=1)
 df_center_index = df_center_index.dropna(subset=['index'])
 df_center_index['index'] = df_center_index['index'].astype(int)
@@ -404,14 +404,14 @@ print(df_center_index.shape)
 df_center_index.head(10)
 
 
-# In[23]:
+# In[22]:
 
 
 center_list = closest
 center_list_annotation = df_center['index_png'].tolist()
 
 
-# In[24]:
+# In[23]:
 
 
 data_2d = data_2d_umap # this is the data for visualization
@@ -420,13 +420,14 @@ dim_name = 'umap'
 #Getting unique labels
 plt.figure(figsize=(8,6))
 u_labels = np.unique(label)
-num_labels = len(u_labels)
-color_palette = sns.color_palette('husl', num_labels)
+label_to_idx = {lab: idx for idx, lab in enumerate(sorted(u_labels))}
+color_palette = sns.color_palette('husl', len(u_labels))
 for i, each in enumerate(center_list):
     plt.scatter(data_2d[each][0],data_2d[each][1], s=30, c=[color_palette[i]])
     plt.annotate(center_list_annotation[i], (data_2d[each][0],data_2d[each][1]), ha="center", va="center", xytext=(0,10), textcoords='offset points')
-for i in u_labels:
-    plt.scatter(data_2d[label == i , 0] , data_2d[label == i , 1] , label=f"Cluster {i}", s=0.5, c=[color_palette[i]],alpha=0.4)
+for lab in u_labels:
+    mask = (label == lab)
+    plt.scatter(data_2d[mask, 0], data_2d[mask, 1], label=f"Cluster {lab}", s=0.5, c=[color_palette[label_to_idx[lab]]], alpha=0.4)
 legend = plt.legend(loc='lower left', ncol=1, frameon=False)
 for legend_handle in legend.legend_handles:
     legend_handle.set_sizes([30])  # Increase the size of legend dots    
@@ -436,7 +437,7 @@ plt.axis('off')
 plt.savefig(f'../results/recon_img/{dataset_name}/MARL_{curr_data}_{dim_name}_{n_clusters}_kmeans.png')
 
 
-# In[25]:
+# In[24]:
 
 
 data_2d = data_2d_tsne # this is the data for visualization
@@ -445,13 +446,14 @@ dim_name = 'tsne'
 #Getting unique labels
 plt.figure(figsize=(8,6))
 u_labels = np.unique(label)
-num_labels = len(u_labels)
-color_palette = sns.color_palette('husl', num_labels)
+label_to_idx = {lab: idx for idx, lab in enumerate(sorted(u_labels))}
+color_palette = sns.color_palette('husl', len(u_labels))
 for i, each in enumerate(center_list):
     plt.scatter(data_2d[each][0],data_2d[each][1], s=30, c=[color_palette[i]])
     plt.annotate(center_list_annotation[i], (data_2d[each][0],data_2d[each][1]), ha="center", va="center", xytext=(0,10), textcoords='offset points')
-for i in u_labels:
-    plt.scatter(data_2d[label == i , 0] , data_2d[label == i , 1] , label=f"Cluster {i}", s=0.5, c=[color_palette[i]],alpha=0.4)
+for lab in u_labels:
+    mask = (label == lab)
+    plt.scatter(data_2d[mask, 0], data_2d[mask, 1], label=f"Cluster {lab}", s=0.5, c=[color_palette[label_to_idx[lab]]], alpha=0.4)
 legend = plt.legend(loc='lower left', ncol=1, frameon=False)
 for legend_handle in legend.legend_handles:
     legend_handle.set_sizes([30])  # Increase the size of legend dots 
@@ -463,7 +465,7 @@ plt.savefig(f'../results/recon_img/{dataset_name}/MARL_{curr_data}_{dim_name}_{n
 
 # ## Visualize the cluster center
 
-# In[26]:
+# In[25]:
 
 
 def scale_crop(img): #B,C,H,W
@@ -472,7 +474,7 @@ def scale_crop(img): #B,C,H,W
     return rescale(img)
 
 
-# In[27]:
+# In[26]:
 
 
 indexes = center_list
@@ -480,7 +482,7 @@ cluster_count = n_clusters
 print(f"Number of clusters: {cluster_count}, Number of indexes: {len(indexes)}")
 
 
-# In[28]:
+# In[27]:
 
 
 # Create a figure and axes with `cluster_count` subplots
@@ -490,7 +492,7 @@ crop_size = 56
 
 # Iterate over the `cluster_count` subplots
 for i, index in enumerate(indexes):
-    image_path = floor.all_data_dirs[index]
+    image_path = sample_paths[index]
     # Read the image using torch's load
     image = torch.load(image_path)
     scaled = scale_crop(image)
@@ -507,7 +509,7 @@ plt.tight_layout()
 plt.savefig(f"../results/recon_img/{dataset_name}/MARL_{curr_data}_{cluster_count}cluster_sample_multiscale.png")
 
 
-# In[29]:
+# In[28]:
 
 
 def get_zoomed_img(image_path, half_pixel):
@@ -528,7 +530,7 @@ def get_zoomed_img(image_path, half_pixel):
     return center_img
 
 
-# In[30]:
+# In[29]:
 
 
 import os
@@ -548,7 +550,7 @@ if not os.path.exists(new_dir):
     os.makedirs(new_dir)
 
 for i, index in enumerate(indexes):
-    image_path = floor.all_data_dirs[index]
+    image_path = sample_paths[index]
     # Split the path into the name and the extension
     file_name, file_extension = os.path.splitext(image_path)
     # Replace the '.pt' extension with '.png'
@@ -578,7 +580,7 @@ plt.savefig(f"../results/recon_img/{dataset_name}/MARL_{curr_data}_{cluster_coun
 num_indexes
 
 
-# In[47]:
+# In[30]:
 
 
 import numpy as np
@@ -661,8 +663,8 @@ indexes
 
 
 unique_labels, counts = np.unique(label, return_counts=True)
-cluster_labels = [center_list_annotation[i] for i in unique_labels]
-bar_colors = [color_palette[i] for i in unique_labels]
+cluster_labels = [center_list_annotation[label_to_idx[i]] for i in unique_labels]
+bar_colors = [sns.color_palette('husl', len(np.unique(label)))[label_to_idx[i]] for i in unique_labels]
 
 plt.figure(figsize=(9, 6))
 bars = plt.bar(cluster_labels, counts, color=bar_colors, edgecolor="black", alpha=0.85)
@@ -694,12 +696,93 @@ merged_df
 # In[35]:
 
 
+# --- Multimodal Clustering: Image + Metadata ---
+alpha = 0.7  # weight for image embeddings
+beta = 0.3   # weight for metadata
+
+# Select metadata columns to combine
+meta_features = merged_df[['HEIGHT', 'street_width', 'orientation', 'YearBuilt1']].values
+meta_scaled = StandardScaler().fit_transform(meta_features)
+
+# Align multimodal features to rows present in merged_df
+img_features_all = torch.flatten(latents, start_dim=1).cpu().numpy()
+# Map sample_paths -> index (OBJECTID) extracted above
+samples_df = df_center_index[['index']].copy()
+samples_df['row_id'] = np.arange(len(samples_df))
+merged_for_features = pd.merge(samples_df, merged_df[['OBJECTID']], left_on='index', right_on='OBJECTID', how='inner')
+row_ids = merged_for_features['row_id'].to_numpy()
+img_features = img_features_all[row_ids]
+meta_features = merged_df[['HEIGHT', 'street_width', 'orientation', 'YearBuilt1']].to_numpy()
+meta_scaled = StandardScaler().fit_transform(meta_features)
+combined_features = np.hstack([alpha * img_features, beta * meta_scaled])
+
+# --- Determine optimal k via silhouette ---
+best_score = -1
+optimal_k = 2
+for k in range(2, 8):
+    kmeans_tmp = KMeans(n_clusters=k, random_state=42)
+    labels_tmp = kmeans_tmp.fit_predict(combined_features)
+    score = silhouette_score(combined_features, labels_tmp)
+    print(f"k={k}, silhouette score={score:.4f}")
+    if score > best_score:
+        best_score = score
+        optimal_k = k
+print("Optimal k (multimodal):", optimal_k)
+
+# --- Final KMeans ---
+kmeans_multi = KMeans(n_clusters=optimal_k, random_state=42)
+labels_multi = kmeans_multi.fit_predict(combined_features)
+cluster_centers_multi = kmeans_multi.cluster_centers_
+
+# --- Closest points to cluster centers ---
+closest_multi, _ = pairwise_distances_argmin_min(cluster_centers_multi, combined_features)
+
+# --- Save cluster centers ---
+df_centers_multi = pd.DataFrame({
+    'Cluster': np.arange(optimal_k),
+    'Closest_Point_Index': closest_multi
+})
+df_centers_multi.to_csv(f'../results/recon_img/{dataset_name}/MARL_{curr_data}_multimodal_centers.csv', index=False)
+
+# --- UMAP visualization ---
+umap_multi = UMAP(n_neighbors=50, n_components=2, random_state=42)
+data_2d_umap_multi = umap_multi.fit_transform(combined_features)
+plt.figure(figsize=(8,6))
+u_labels = np.unique(labels_multi)
+color_palette = sns.color_palette('husl', len(u_labels))
+for i, center_idx in enumerate(closest_multi):
+    plt.scatter(data_2d_umap_multi[center_idx,0], data_2d_umap_multi[center_idx,1], s=30, c=[color_palette[i]])
+for i in u_labels:
+    plt.scatter(data_2d_umap_multi[labels_multi==i,0], data_2d_umap_multi[labels_multi==i,1], s=0.5,
+                c=[color_palette[i]], alpha=0.4, label=f"Cluster {i}")
+plt.axis('off')
+plt.title("UMAP Multimodal Clustering")
+plt.savefig(f'../results/recon_img/{dataset_name}/MARL_{curr_data}_multimodal_umap.png')
+plt.show()
+# Get the file paths (or IDs) of the closest points to the multimodal cluster centers
+center_ids_multi = [sample_paths[idx] for idx in closest_multi]
+
+# Add filenames to the dataframe
+df_centers_multi['Center_File'] = center_ids_multi
+df_centers_multi.to_csv(f'../results/recon_img/{dataset_name}/MARL_{curr_data}_multimodal_centers_with_ids.csv', index=False)
+
+# Print results
+print("Multimodal cluster centers (indices):", closest_multi)
+print("Corresponding file paths / IDs:")
+for idx, file in zip(closest_multi, center_ids_multi):
+    print(f"Index {idx} -> {file}")
+
+
+
+# In[36]:
+
+
 grouped_df_lab = merged_df.groupby('YearBuilt1').size().reset_index(name='count')
 grouped_df_lab.to_csv(f"{new_dir}/MARL_{curr_data}_{cluster_count}cluster_count.csv", index=False)
 grouped_df_lab
 
 
-# In[36]:
+# In[37]:
 
 
 grouped_df = merged_df.groupby('UseDescription').size().reset_index(name='count')
@@ -708,7 +791,7 @@ grouped_df.to_csv(f"{new_dir}/MARL_{curr_data}_{cluster_count}cluster_area_aggre
 grouped_df
 
 
-# In[37]:
+# In[38]:
 
 
 #json_index = curr_data.split('_')[0].split('data')[1]
@@ -718,7 +801,7 @@ json_df = json_df[['id','reference', 'beginning', 'numberOf_1', 'currentUse', 'v
 json_df
 
 
-# In[38]:
+# In[39]:
 
 
 csv_df = pd.read_csv('../data_pipeline/trusted_zone/preprocessed_data/08279_br_results_exploded.csv')
@@ -726,14 +809,14 @@ csv_df = csv_df[['idx','building_reference', 'br__mean_building_space_effective_
 csv_df.head()
 
 
-# In[39]:
+# In[40]:
 
 
 df_center['Closest Point Index'] = num_indexes
 df_center
 
 
-# In[40]:
+# In[41]:
 
 
 df_center['Closest Point Index'] = df_center['Closest Point Index'].astype(int)
@@ -742,7 +825,7 @@ csv_df['idx'] = csv_df['idx'].astype(int)
 center_metadata = pd.merge(df_center, csv_df, left_on='Closest Point Index', right_on='idx', how='inner')
 
 
-# In[41]:
+# In[42]:
 
 
 center_metadata.to_csv(f"{new_dir}/MARL_{curr_data}_{cluster_count}cluster_metadata.csv")
@@ -750,7 +833,7 @@ center_metadata.to_csv(f"{new_dir}/MARL_{curr_data}_{cluster_count}cluster_metad
 
 # ## recon the cluster center and export metadata
 
-# In[42]:
+# In[43]:
 
 
 kmeans.cluster_centers_.shape
@@ -758,11 +841,14 @@ kmeans.cluster_centers_.shape
 
 # (82, 3, 112, 112) -> 
 
-# In[43]:
+# In[44]:
 
 
-truncated_centers = kmeans.cluster_centers_[:, :25088]
-latent_centers = torch.from_numpy(truncated_centers.reshape(n_clusters, 32, 28, 28).astype('float32')).to(device)
+# Reconstruct cluster centers from latent space centers
+latent_dim = latents.shape[1:]  # (C, H, W)
+flat_dim = int(np.prod(latent_dim))
+truncated_centers = kmeans.cluster_centers_[:, :flat_dim]
+latent_centers = torch.from_numpy(truncated_centers.reshape(n_clusters, *latent_dim).astype('float32')).to(device)
 
 # def show(img, title):
 #     npimg = img.numpy()
@@ -775,7 +861,7 @@ latent_centers = torch.from_numpy(truncated_centers.reshape(n_clusters, 32, 28, 
 # plt.savefig(f"{n_clusters}_VQrecon.png", bbox_inches='tight')
 
 
-# In[44]:
+# In[45]:
 
 
 latent = vqae.pre_quantization_conv(latent_centers)
@@ -794,20 +880,20 @@ plt.savefig(f"../results/recon_img/MARL_{curr_data}_{cluster_count}cluster_cente
 
 
 
-# In[45]:
+# In[46]:
 
 
 latent.shape
 
 
-# In[46]:
+# In[47]:
 
 
 valid_recon = vqae.pre_quantization_conv(latent_centers)
 valid_recon.shape
 
 
-# In[ ]:
+# In[48]:
 
 
 valid_recon[0].shape
@@ -951,122 +1037,121 @@ for image_path in image_paths:
     cv2.imwrite(edge_image_path, edges)
 
 
-# ### get aggregated area
+"""
+Optional area aggregation utilities below depend on external inputs (objectid_ref_df etc.).
+Guarded by ENABLE_AREA_AGG to prevent NameError when those inputs are not present.
+"""
+ENABLE_AREA_AGG = False
 
-# In[ ]:
+if ENABLE_AREA_AGG:
+    # ### get aggregated area
 
-
-def get_csv_df(index):
-    desired_number = str(index)
-    for filename in os.listdir(directory_path):
-        if desired_number in filename:
-            file_path = os.path.join(directory_path, filename)
-            csv_df = pd.read_csv(file_path,index_col=None)
-            csv_df['index'] = csv_df['data'].str.extract(r'(\d+)\.pt')
-            csv_df['index']=csv_df['index'].astype(int)
-    return csv_df
+    # In[ ]:
 
 
-# In[ ]:
-
-
-def calculate_aggregated_areas(csv_df):
-    desired_features = []
-    for feature in jsonfile['features']:
-        if feature['properties']['OBJECTID'] in csv_df['index'].values:
-            desired_features.append(feature)
-
-    # Extract information for objectID, areas, and heights from desired features
-    objectID_list = []
-    footprint_list = []
-    area_list = []
-    height_list = []
-
-    for feature in desired_features:
-        objectID = feature['properties']['OBJECTID']
-        footprint = feature['properties']['footprint']
-        area = feature['properties']['Shape_Area_1']
-        height = feature['properties']['HEIGHT']
-
-        objectID_list.append(objectID)
-        footprint_list.append(footprint)
-        area_list.append(area)
-        height_list.append(height)
-
-        # Create a new DataFrame from the extracted information
-        json_df = pd.DataFrame({
-            'objectID': objectID_list,
-            'footprint': footprint_list,
-            'area': area_list,
-            'height': height_list
-        })
-    merged_df = json_df.merge(csv_df, left_on='objectID', right_on='index')
-    sum_of_area = merged_df['area'].sum()
-    return sum_of_area, merged_df
+    def get_csv_df(index):
+        desired_number = str(index)
+        for filename in os.listdir(directory_path):
+            if desired_number in filename:
+                file_path = os.path.join(directory_path, filename)
+                csv_df = pd.read_csv(file_path,index_col=None)
+                csv_df['index'] = csv_df['data'].str.extract(r'(\d+)\.pt')
+                csv_df['index']=csv_df['index'].astype(int)
+        return csv_df
 
 
 # In[ ]:
 
 
-def get_sum_of_area():
-    merged_df = csv_df.merge(objectid_ref_df, left_on='index', right_on='OBJECTID')
-    print(f"csv_df shape = {csv_df.shape}, objectid_ref_df = {objectid_ref_df.shape}")
-    print(f"merged_df shape = {merged_df.shape}")
-    sum_of_area = merged_df['building.area.m2'].sum()
-    return sum_of_area
+    def calculate_aggregated_areas(csv_df):
+        desired_features = []
+        for feature in jsonfile['features']:
+            if feature['properties']['OBJECTID'] in csv_df['index'].values:
+                desired_features.append(feature)
+
+        # Extract information for objectID, areas, and heights from desired features
+        objectID_list = []
+        footprint_list = []
+        area_list = []
+        height_list = []
+
+        for feature in desired_features:
+            objectID = feature['properties']['OBJECTID']
+            footprint = feature['properties']['footprint']
+            area = feature['properties']['Shape_Area_1']
+            height = feature['properties']['HEIGHT']
+
+            objectID_list.append(objectID)
+            footprint_list.append(footprint)
+            area_list.append(area)
+            height_list.append(height)
+
+            # Create a new DataFrame from the extracted information
+            json_df = pd.DataFrame({
+                'objectID': objectID_list,
+                'footprint': footprint_list,
+                'area': area_list,
+                'height': height_list
+            })
+        merged_df = json_df.merge(csv_df, left_on='objectID', right_on='index')
+        sum_of_area = merged_df['area'].sum()
+        return sum_of_area, merged_df
 
 
 # In[ ]:
 
 
-sum_of_area_list = []
-json_file_path = r"..\data\data_root\geojson_0.json"
-directory_path = r'../results/area_aggregation'  # Use r prefix for raw string
-# Create an empty DataFrame to store the objectIDs
-objectID_df = pd.DataFrame(columns=[0])
-# Load the JSON data from the file
-with open(json_file_path) as file:
-    jsonfile = json.load(file)
-    
-for index in tqdm(num_indexes):
-    csv_df = get_csv_df(index)
-    # filtered_df = csv_df[csv_df['index'].isin(objectid_ref_df['OBJECTID'])]
-    # print(filtered_df.shape)
-    # sum_of_area, merged_df=calculate_aggregated_areas(filtered_df)
-    sum_of_area = get_sum_of_area()
-    sum_of_area_list.append(sum_of_area)
-    # merged_df.to_csv(f'../results/area_aggregation/5cluster_{index}_merged.csv',index=False)
-    # objectID_df = pd.concat([objectID_df, merged_df['objectID']], ignore_index=True)
-# objectID_df.to_csv('../results/area_aggregation/objectID.csv', index=False)
+    def get_sum_of_area():
+        merged_df = csv_df.merge(objectid_ref_df, left_on='index', right_on='OBJECTID')
+        print(f"csv_df shape = {csv_df.shape}, objectid_ref_df = {objectid_ref_df.shape}")
+        print(f"merged_df shape = {merged_df.shape}")
+        sum_of_area = merged_df['building.area.m2'].sum()
+        return sum_of_area
 
 
 # In[ ]:
 
 
-sum_of_area_list
+    sum_of_area_list = []
+    json_file_path = r"..\data\data_root\geojson_0.json"
+    directory_path = r'../results/area_aggregation'
+    objectID_df = pd.DataFrame(columns=[0])
+    with open(json_file_path) as file:
+        jsonfile = json.load(file)
+
+    for index in tqdm(num_indexes):
+        csv_df = get_csv_df(index)
+        sum_of_area = get_sum_of_area()
+        sum_of_area_list.append(sum_of_area)
 
 
 # In[ ]:
 
 
-objectid_ref_df
+    sum_of_area_list
 
 
 # In[ ]:
 
 
-objectid_ref_df.sum()
+    objectid_ref_df
 
 
 # In[ ]:
 
 
-sum_of_area_list
+    objectid_ref_df.sum()
 
 
 # In[ ]:
 
 
-new_df = pd.DataFrame({'index': num_indexes, 'area': sum_of_area_list})
-new_df.to_csv('area_aggregation_kmeans_5.csv')
+    sum_of_area_list
+
+
+# In[ ]:
+
+
+    new_df = pd.DataFrame({'index': num_indexes, 'area': sum_of_area_list})
+    new_df.to_csv('area_aggregation_kmeans_5.csv')
 
