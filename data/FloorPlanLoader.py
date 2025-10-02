@@ -65,9 +65,9 @@ class FloorPlanDataset(torch.utils.data.Dataset):
             
         self.year_span = [1980, 2004, 2013]
         def year_map(year):
-            if year<1980: return 0
-            elif year<2004: return 1
-            elif year<2013: return 2
+            if year<1960: return 0
+            elif year<1999: return 1
+            elif year<2006: return 2
             else: return 3
         self.year_mapping = year_map
         self._init_data_info()
