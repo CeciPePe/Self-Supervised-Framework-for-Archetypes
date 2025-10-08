@@ -55,8 +55,8 @@ noise=False
 noise_weight=0.05
 img_channel=3 if USE_MULTISCALE else 1
 
-dataset_name = 'entertainment_venues'
-dataset_name_m ='Entertainment_venues'
+dataset_name = 'warehouse_parking'
+dataset_name_m ='Warehouse_parking'
 
 def train_marl(train_loader=None, validation_loader=None, 
                data_variance=None, val_len=None, year_label_num=None, category_num=None, num_second_use=None,
@@ -349,7 +349,7 @@ def train_marl(train_loader=None, validation_loader=None,
         
         # Print accuracy metrics
         if USE_MULTITASK and test_age_accuracy:
-            print(f'Accuracy Metrics:')
+            print(f'📊 Accuracy Metrics:')
             print(f'   Age Accuracy: {np.mean(test_age_accuracy[-len(validation_loader):]):.4f}')
             print(f'   Category Accuracy: {np.mean(test_category_accuracy[-len(validation_loader):]):.4f}')
             print(f'   Second Use Accuracy: {np.mean(test_second_use_accuracy[-len(validation_loader):]):.4f}')
@@ -401,7 +401,7 @@ def train_marl(train_loader=None, validation_loader=None,
 
 if __name__ == "__main__":
     #Load Dataset
-    floor = FloorPlanDataset(multi_scale=True, root=f'./data/data_br/{dataset_name}/', data_config=f'./data/data_config_1/tertiary/{dataset_name_m}/', preprocess=True)
+    floor = FloorPlanDataset(multi_scale=True, root=f'./data/data_br/{dataset_name}/', data_config='./data/data_config_1/tertiary/Warehouse_parking/', preprocess=True)
     data_variance = floor.var
     val_len = int(len(floor)/10)
     train_set, val_set = torch.utils.data.random_split(floor, [len(floor)-val_len, val_len])

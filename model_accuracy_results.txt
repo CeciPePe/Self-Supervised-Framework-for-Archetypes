@@ -1,0 +1,366 @@
+MARL MODEL ACCURACY RESULTS - ALL DATASETS
+================================================================================
+Generated on: 2025-10-05 23:57:32
+================================================================================
+
+
+DATASET: HEALTHCARE_AND_CHARITY (Healthcare_and_charity) - Final Best Epoch 99
+============================================================
+Validation Loss: 4.791992
+Dataset Size: 38 samples
+Data Variance: 0.041887
+Total Epochs Trained: 100
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.6667 (66.67%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.3333 (33.33%)
+
+REGRESSION TASKS:
+   Height MAE: 0.183751 (R²: -112.8857)
+   Orientation MAE: 0.225073 (R²: 0.6816)
+   Street Width MAE: 0.193370 (R²: -0.0824)
+
+LOSS METRICS:
+   Reconstruction Error: 0.323033
+   Height Error: 0.091109
+   Age Error: 0.351490
+   Category Error: 0.232368
+   Orientation Error: 0.051829
+   Street Width Error: 0.084497
+   Second Use Error: 3.657666
+
+Model saved as: ./checkpoint/99-marl-4.791991945356131.pt
+================================================================================
+
+DATASET: CULTURAL (Cultural) - Final Best Epoch 23
+============================================================
+Validation Loss: 5.575889
+Dataset Size: 175 samples
+Data Variance: 0.045618
+Total Epochs Trained: 34
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.4706 (47.06%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.7059 (70.59%)
+
+REGRESSION TASKS:
+   Height MAE: 0.392684 (R²: -550.3000)
+   Orientation MAE: 0.826920 (R²: -13.5976)
+   Street Width MAE: 0.345186 (R²: -7.2779)
+
+LOSS METRICS:
+   Reconstruction Error: 1.510210
+   Height Error: 0.236925
+   Age Error: 0.394858
+   Category Error: 0.236408
+   Orientation Error: 1.267283
+   Street Width Error: 0.236236
+   Second Use Error: 3.872953
+
+Model saved as: ./checkpoint/23-marl-5.575888957828283.pt
+================================================================================
+
+DATASET: COMMERCIAL (Commercial) - Final Best Epoch 78
+============================================================
+Validation Loss: 4.257988
+Dataset Size: 2382 samples
+Data Variance: 0.041553
+Total Epochs Trained: 89
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.5572 (55.72%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.8583 (85.83%)
+
+REGRESSION TASKS:
+   Height MAE: 0.011141 (R²: -2.1049)
+   Orientation MAE: 0.246104 (R²: 0.0342)
+   Street Width MAE: 0.093799 (R²: -0.0569)
+
+LOSS METRICS:
+   Reconstruction Error: 0.136427
+   Height Error: 0.000292
+   Age Error: 0.354628
+   Category Error: 0.219332
+   Orientation Error: 0.081059
+   Street Width Error: 0.021539
+   Second Use Error: 3.455559
+
+Model saved as: ./checkpoint/78-marl-4.2579881446872605.pt
+================================================================================
+
+DATASET: ENTERTAINMENT_VENUES (Entertainment_venues) - Final Best Epoch 54
+============================================================
+Validation Loss: 5.575353
+Dataset Size: 31 samples
+Data Variance: 0.044189
+Total Epochs Trained: 65
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 1.0000 (100.00%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.3333 (33.33%)
+
+REGRESSION TASKS:
+   Height MAE: 0.032672 (R²: -0.4593)
+   Orientation MAE: 0.273158 (R²: -0.7096)
+   Street Width MAE: 0.077442 (R²: -0.1013)
+
+LOSS METRICS:
+   Reconstruction Error: 1.853112
+   Height Error: 0.001167
+   Age Error: 0.302836
+   Category Error: 0.254335
+   Orientation Error: 0.087347
+   Street Width Error: 0.009040
+   Second Use Error: 4.187591
+
+Model saved as: ./checkpoint/54-marl-5.575353033374995.pt
+================================================================================
+
+DATASET: INDUSTRIAL (Industrial) - Final Best Epoch 44
+============================================================
+Validation Loss: 3.681925
+Dataset Size: 773 samples
+Data Variance: 0.040075
+Total Epochs Trained: 55
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.6234 (62.34%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.9610 (96.10%)
+
+REGRESSION TASKS:
+   Height MAE: 0.029898 (R²: -4.6112)
+   Orientation MAE: 0.265677 (R²: -0.1302)
+   Street Width MAE: 0.104322 (R²: -0.1771)
+
+LOSS METRICS:
+   Reconstruction Error: 0.407080
+   Height Error: 0.002181
+   Age Error: 0.337226
+   Category Error: 0.234396
+   Orientation Error: 0.093302
+   Street Width Error: 0.032415
+   Second Use Error: 2.803698
+
+Model saved as: ./checkpoint/44-marl-3.681925257551484.pt
+================================================================================
+
+DATASET: LEISURE_AND_HOSPITALITY (Leisure_and_hospitality) - Final Best Epoch 41
+============================================================
+Validation Loss: 5.026236
+Dataset Size: 194 samples
+Data Variance: 0.041594
+Total Epochs Trained: 52
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.1579 (15.79%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.0000 (0.00%)
+
+REGRESSION TASKS:
+   Height MAE: 0.049003 (R²: -176602025558016.0000)
+   Orientation MAE: 0.337172 (R²: -0.7809)
+   Street Width MAE: 0.163423 (R²: -0.1022)
+
+LOSS METRICS:
+   Reconstruction Error: 0.611764
+   Height Error: 0.002451
+   Age Error: 0.464289
+   Category Error: 0.279537
+   Orientation Error: 0.175940
+   Street Width Error: 0.041135
+   Second Use Error: 4.174717
+
+Model saved as: ./checkpoint/41-marl-5.026235889061354.pt
+================================================================================
+
+DATASET: OFFICES (Offices) - Final Best Epoch 34
+============================================================
+Validation Loss: 4.475318
+Dataset Size: 653 samples
+Data Variance: 0.041310
+Total Epochs Trained: 45
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.5077 (50.77%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.8769 (87.69%)
+
+REGRESSION TASKS:
+   Height MAE: 0.017495 (R²: -0.2620)
+   Orientation MAE: 0.264087 (R²: 0.0157)
+   Street Width MAE: 0.116521 (R²: -0.0023)
+
+LOSS METRICS:
+   Reconstruction Error: 0.549667
+   Height Error: 0.000376
+   Age Error: 0.371617
+   Category Error: 0.223641
+   Orientation Error: 0.084980
+   Street Width Error: 0.027740
+   Second Use Error: 3.359979
+
+Model saved as: ./checkpoint/34-marl-4.475318040262209.pt
+================================================================================
+
+DATASET: RESIDENTIAL (Residential) - Final Best Epoch 89
+============================================================
+Validation Loss: 3.827429
+Dataset Size: 22306 samples
+Data Variance: 0.042221
+Total Epochs Trained: 100
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.5565 (55.65%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.9985 (99.85%)
+
+REGRESSION TASKS:
+   Height MAE: 0.028973 (R²: 0.0271)
+   Orientation MAE: 0.242406 (R²: 0.1381)
+   Street Width MAE: 0.064831 (R²: 0.0108)
+
+LOSS METRICS:
+   Reconstruction Error: 0.056216
+   Height Error: 0.001715
+   Age Error: 0.352714
+   Category Error: 0.219283
+   Orientation Error: 0.077259
+   Street Width Error: 0.014071
+   Second Use Error: 3.140116
+
+Model saved as: ./checkpoint/89-marl-3.827428802608564.pt
+================================================================================
+
+DATASET: SINGULAR_BUILDING (Singular_building) - Final Best Epoch 30
+============================================================
+Validation Loss: 5.340732
+Dataset Size: 207 samples
+Data Variance: 0.041358
+Total Epochs Trained: 41
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.4500 (45.00%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.5500 (55.00%)
+
+REGRESSION TASKS:
+   Height MAE: 0.067315 (R²: -13.8127)
+   Orientation MAE: 0.311687 (R²: -0.4552)
+   Street Width MAE: 0.098233 (R²: -0.4997)
+
+LOSS METRICS:
+   Reconstruction Error: 0.580717
+   Height Error: 0.006132
+   Age Error: 0.388330
+   Category Error: 0.250656
+   Orientation Error: 0.128264
+   Street Width Error: 0.028562
+   Second Use Error: 4.106716
+
+Model saved as: ./checkpoint/30-marl-5.340731885749847.pt
+================================================================================
+
+DATASET: SPORTS_FACILITIES (Sports_facilities) - Final Best Epoch 95
+============================================================
+Validation Loss: 4.453184
+Dataset Size: 237 samples
+Data Variance: 0.045426
+Total Epochs Trained: 100
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.7391 (73.91%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.7826 (78.26%)
+
+REGRESSION TASKS:
+   Height MAE: 0.008314 (R²: -0.0196)
+   Orientation MAE: 0.274814 (R²: -0.0725)
+   Street Width MAE: 0.093769 (R²: -0.1825)
+
+LOSS METRICS:
+   Reconstruction Error: 0.351179
+   Height Error: 0.000184
+   Age Error: 0.302580
+   Category Error: 0.220393
+   Orientation Error: 0.095609
+   Street Width Error: 0.011074
+   Second Use Error: 3.492404
+
+Model saved as: ./checkpoint/95-marl-4.453183978650486.pt
+================================================================================
+
+DATASET: URBANIZATION_LAND (Urbanization_land) - Final Best Epoch 64
+============================================================
+Validation Loss: 4.557601
+Dataset Size: 1401 samples
+Data Variance: 0.042648
+Total Epochs Trained: 75
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.5977 (59.77%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.6471 (64.71%)
+
+REGRESSION TASKS:
+   Height MAE: 0.026161 (R²: -5.5624)
+   Orientation MAE: 0.267350 (R²: 0.0768)
+   Street Width MAE: 0.061044 (R²: -2.9263)
+
+LOSS METRICS:
+   Reconstruction Error: 0.156921
+   Height Error: 0.000974
+   Age Error: 0.347069
+   Category Error: 0.219401
+   Orientation Error: 0.092433
+   Street Width Error: 0.010365
+   Second Use Error: 3.758204
+
+Model saved as: ./checkpoint/64-marl-4.557601219799835.pt
+================================================================================
+
+DATASET: WAREHOUSE_PARKING (Warehouse_parking) - Final Best Epoch 19
+============================================================
+Validation Loss: 4.823488
+Dataset Size: 8449 samples
+Data Variance: 0.042493
+Total Epochs Trained: 30
+============================================================
+
+CLASSIFICATION TASKS:
+   Age Accuracy: 0.4742 (47.42%)
+   Category Accuracy: 1.0000 (100.00%)
+   Second Use Accuracy: 0.4092 (40.92%)
+
+REGRESSION TASKS:
+   Height MAE: 0.011144 (R²: -0.0684)
+   Orientation MAE: 0.246721 (R²: -0.0222)
+   Street Width MAE: 0.063136 (R²: -0.0619)
+
+LOSS METRICS:
+   Reconstruction Error: 0.290348
+   Height Error: 0.000257
+   Age Error: 0.380828
+   Category Error: 0.220709
+   Orientation Error: 0.085054
+   Street Width Error: 0.009063
+   Second Use Error: 3.994285
+
+Model saved as: ./checkpoint/19-marl-4.823487786185329.pt
+================================================================================
+

@@ -158,3 +158,23 @@ data_pipeline/landing_zone/raw_data/.gitkeep
 
 data_pipeline/trusted_zone/preprocessed_data/*
 data_pipeline/trusted_zone/preprocessed_data/.gitkeep
+
+
+results/recon_img/
+
+notebooks/commercial/
+notebooks/cultural/
+notebooks/residential/
+notebooks/sports_facilities/
+notebooks/entertainment_venues/
+notebooks/healthcare_and_charity/
+notebooks/industrial/
+notebooks/leisure_and_hospitality/
+notebooks/offices/
+notebooks/singular_building/
+notebooks/warehouse_parking/
+notebooks/urbanization_land/
+
+data/data_br/
+data/data_config_1/
+cluster_images/

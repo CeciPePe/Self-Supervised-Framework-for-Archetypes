@@ -1,0 +1,168 @@
+
+--- Healthcare_and_charity ---
+elbow k=2
+
+--- Healthcare_and_charity ---
+k=2, silhouette score=0.1327
+k=3, silhouette score=0.1449
+k=4, silhouette score=0.1080
+k=5, silhouette score=0.0648
+k=6, silhouette score=0.0644
+k=7, silhouette score=0.0670
+k=8, silhouette score=0.0708
+k=9, silhouette score=0.0809
+Optimal number of clusters (silhouette): 3
+
+--- Cultural ---
+elbow k=2
+
+--- Cultural ---
+k=2, silhouette score=0.1600
+k=3, silhouette score=0.1609
+k=4, silhouette score=0.0802
+k=5, silhouette score=0.0820
+k=6, silhouette score=0.0765
+k=7, silhouette score=0.0679
+k=8, silhouette score=0.0555
+k=9, silhouette score=0.0617
+Optimal number of clusters (silhouette): 3
+
+--- Commercial ---
+elbow k=4
+
+--- Commercial ---
+k=2, silhouette score=0.0921
+k=3, silhouette score=0.0773
+k=4, silhouette score=0.0931
+k=5, silhouette score=0.0858
+k=6, silhouette score=0.0892
+k=7, silhouette score=0.0954
+k=8, silhouette score=0.0759
+k=9, silhouette score=0.0786
+Optimal number of clusters (silhouette): 7
+
+--- Entertainment_venues ---
+elbow k=3
+
+--- Entertainment_venues ---
+k=2, silhouette score=0.3234
+k=3, silhouette score=0.2977
+k=4, silhouette score=0.2439
+k=5, silhouette score=0.2447
+k=6, silhouette score=0.2194
+k=7, silhouette score=0.2285
+k=8, silhouette score=0.1339
+k=9, silhouette score=0.1286
+Optimal number of clusters (silhouette): 2
+
+--- Industrial ---
+elbow k=4
+
+--- Industrial ---
+k=2, silhouette score=0.0701
+k=3, silhouette score=0.1361
+k=4, silhouette score=0.0743
+k=5, silhouette score=0.0722
+k=6, silhouette score=0.0829
+k=7, silhouette score=0.0645
+k=8, silhouette score=0.0510
+k=9, silhouette score=0.0518
+Optimal number of clusters (silhouette): 3
+
+--- Leisure_and_hospitality ---
+elbow k=3
+
+--- Leisure_and_hospitality ---
+k=2, silhouette score=0.3239
+k=3, silhouette score=0.3404
+k=4, silhouette score=0.2657
+k=5, silhouette score=0.2111
+k=6, silhouette score=0.2076
+k=7, silhouette score=0.2114
+k=8, silhouette score=0.2033
+k=9, silhouette score=0.1794
+Optimal number of clusters (silhouette): 3
+
+--- Offices ---
+elbow k=3
+
+--- Offices ---
+k=2, silhouette score=0.2706
+k=3, silhouette score=0.2915
+k=4, silhouette score=0.2503
+k=5, silhouette score=0.2634
+k=6, silhouette score=0.2659
+k=7, silhouette score=0.2612
+k=8, silhouette score=0.2190
+k=9, silhouette score=0.2057
+Optimal number of clusters (silhouette): 3
+
+--- Residential ---
+elbow k=4
+
+--- Residential ---
+k=2, silhouette score=0.0990
+k=3, silhouette score=0.1104
+k=4, silhouette score=0.1225
+k=5, silhouette score=0.1240
+k=6, silhouette score=0.1154
+k=7, silhouette score=0.1066
+k=8, silhouette score=0.1044
+k=9, silhouette score=0.1036
+Optimal number of clusters (silhouette): 5
+
+--- Singular_building ---
+elbow k=3
+
+--- Singular_building ---
+k=2, silhouette score=0.3536
+k=3, silhouette score=0.1555
+k=4, silhouette score=0.1679
+k=5, silhouette score=0.1249
+k=6, silhouette score=0.1347
+k=7, silhouette score=0.1181
+k=8, silhouette score=0.1208
+k=9, silhouette score=0.1173
+Optimal number of clusters (silhouette): 2
+
+--- Sports_facilities ---
+elbow k=4
+
+--- Sports_facilities ---
+k=2, silhouette score=0.1977
+k=3, silhouette score=0.2129
+k=4, silhouette score=0.1524
+k=5, silhouette score=0.1834
+k=6, silhouette score=0.1658
+k=7, silhouette score=0.1526
+k=8, silhouette score=0.1530
+k=9, silhouette score=0.1379
+Optimal number of clusters (silhouette): 3
+
+--- Urbanization_land ---
+elbow k=4
+
+--- Urbanization_land ---
+k=2, silhouette score=0.2267
+k=3, silhouette score=0.0219
+k=4, silhouette score=0.0232
+k=5, silhouette score=0.0236
+k=6, silhouette score=0.0247
+k=7, silhouette score=0.0177
+k=8, silhouette score=0.0251
+k=9, silhouette score=0.0220
+Optimal number of clusters (silhouette): 2
+
+--- Warehouse_parking ---
+elbow k=3
+
+--- Warehouse_parking ---
+k=2, silhouette score=0.1285
+k=3, silhouette score=0.1340
+k=4, silhouette score=0.1282
+k=5, silhouette score=0.1273
+k=6, silhouette score=0.1103
+k=7, silhouette score=0.1022
+k=8, silhouette score=0.0951
+k=9, silhouette score=0.0918
+Optimal number of clusters (silhouette): 3

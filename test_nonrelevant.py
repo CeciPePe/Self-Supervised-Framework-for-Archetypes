@@ -1,6 +1,6 @@
 from data.FloorPlanLoader import FloorPlanDataset
 
-dataset = FloorPlanDataset(multi_scale=True, root='./data/data_br/residential/', data_config='./data/data_config_1/residential/Residential/', preprocess=False)
+dataset = FloorPlanDataset(multi_scale=True, root='./data/data_br/cultural/', data_config='./data/data_config_1/tertiary/Cultural/', preprocess=False)
 
 print("Dataset length:", len(dataset))
 sample = dataset[0]

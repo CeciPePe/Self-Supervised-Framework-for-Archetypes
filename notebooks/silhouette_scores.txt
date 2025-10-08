@@ -134,3 +134,17 @@ k=7, silhouette score=0.1127
 k=8, silhouette score=0.1055
 k=9, silhouette score=0.1113
 Optimal number of clusters (silhouette): 7
+
+--- Entertainment_venues ---
+elbow k=3
+
+--- Entertainment_venues ---
+k=2, silhouette score=0.3325
+k=3, silhouette score=0.3061
+k=4, silhouette score=0.2603
+k=5, silhouette score=0.2548
+k=6, silhouette score=0.2305
+k=7, silhouette score=0.2388
+k=8, silhouette score=0.1780
+k=9, silhouette score=0.1682
+Optimal number of clusters (silhouette): 2
