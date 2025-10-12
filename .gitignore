@@ -181,3 +181,4 @@ cluster_images/
 hypercadaster_es/
 results/merged_buildings_full.csv/
 data_pipeline/ingestion_zone/data/*data_pipeline/ingestion_zone/data/
+data_pipeline/ingestion_zone/data/
