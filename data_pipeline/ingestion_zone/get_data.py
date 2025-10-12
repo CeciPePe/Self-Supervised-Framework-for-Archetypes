@@ -7,5 +7,5 @@ hc.download("./data_pipeline/ingestion_zone/data", cadaster_codes=["08279"],elev
 gdf = hc.merge("./data_pipeline/ingestion_zone/data", cadaster_codes=["08279"], neighborhood_layer=False,elevations_layer=False)
 
 # Save results
-gdf.to_pickle("./daºta_pipeline/ingestion_zone/terrassa.pkl", compression="gzip")
+gdf.to_pickle("./data_pipeline/landing_zone/raw_data/08279_br_results.pkl", compression="gzip")
 
