@@ -396,7 +396,7 @@ def train_marl(train_loader=None, validation_loader=None,
             f.write(f"   Second Use Error: {np.mean(test_seconduse_error[-len(validation_loader):]):.6f}\n\n")
             f.write(f"Model saved as: ./checkpoint/{best_epoch}-marl-{best_loss}.pt\n")
             f.write(f"{'='*80}\n\n")
-        print(f"💾 Final best epoch results saved to: {results_file}")
+        print(f"Final best epoch results saved to: {results_file}")
 
 
 if __name__ == "__main__":
