@@ -178,7 +178,3 @@ notebooks/urbanization_land/
 data/data_br/
 data/data_config_1/
 cluster_images/
-
-hypercadaster_es/
-results/merged_buildings_full.csv/
-data_pipeline/ingestion_zone/data/*
